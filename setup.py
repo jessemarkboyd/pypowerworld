@@ -8,7 +8,7 @@ setup(
     keywords = ['testing', 'logging', 'powerworld', 'powerflow', 'loadflow'],
     version = '0.1.0',
     description = 'Powerworld COM wrapper for Python',
-    long_description = open('README.txt').read(),
+    long_description = open('README.txt',encoding='utf8').read(),
     packages = ['pypowerworld',],
     license = 'Creative Commons Attribution-Noncommercial-Share Alike license',
 )
