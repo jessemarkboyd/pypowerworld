@@ -38,7 +38,6 @@ class PowerWorld(object):
 
     # Open *.pwb case
     def open_case(self):
-        #time.sleep(2)
         temp_status = self.set_output(self.pw_com.OpenCase(self.file_path + '/' + self.file_name + '.pwb'))
         if not temp_status:
             print("Error opening case")
