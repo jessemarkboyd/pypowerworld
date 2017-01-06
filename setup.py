@@ -10,7 +10,6 @@ setup(
   description = 'Powerworld COM wrapper for Python',
   long_description = open('README.txt').read(),
   packages = ['pypowerworld',],
-  install_requires=['Powerworld SimAuto',],
   license = 'Creative Commons Attribution-Noncommercial-Share Alike license',
 
 )
