@@ -1,4 +1,4 @@
-﻿======================
+======================
 
 ==== pypowerworld ====
 
@@ -35,7 +35,7 @@ If an error occurs, the ‘error’ attribute is set to True and the ‘error_me
 	import pypowerworld
 
 	case_path = r‘somepath/somecase.pwb’
-	pw = pypowerworld.PowerWorld(case_path)
+	pw = pypowerworld(case_path)
 	pw.solve()
 
 	if pw.error:
