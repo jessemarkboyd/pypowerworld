@@ -6,13 +6,13 @@
 # be changed ad hoc.                                                #
 #####################################################################
 
+
+import pandas as pd
+import numpy as np
 import os.path
 import win32com.client
 from win32com.client import VARIANT
 import pythoncom
-import pandas as pd
-import numpy as np
-
 
 def __init__(self,fullfile_path=None):
     self.pw_com = win32com.client.Dispatch('pwrworld.SimulatorAuto') 
