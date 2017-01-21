@@ -9,7 +9,7 @@ setup(
     version = '0.2.3',
     description = 'Powerworld COM wrapper for Python',
     long_description = open('README.txt',encoding='utf8').read(),
-    packages = ['pypowerworld',],
+    packages = ['pypowerworld'],
     license = 'Creative Commons Attribution-Noncommercial-Share Alike license',
     install_requires = ['pandas'],
 )
