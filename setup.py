@@ -4,7 +4,7 @@ setup(
     author = 'Jesse Boyd',
     author_email = 'jessemarkboyd@gmail.com',
     url = 'https://github.com/jessemarkboyd/pypowerworld',
-    download_url = 'https://github.com/jessemarkboyd/pypowerworld/tarball/0.2.1',
+    download_url = 'https://github.com/jessemarkboyd/pypowerworld/tarball/0.2.2',
     keywords = ['testing', 'logging', 'powerworld', 'powerflow', 'loadflow'],
     version = '0.2.2',
     description = 'Powerworld COM wrapper for Python',
