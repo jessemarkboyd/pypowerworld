@@ -2,4 +2,5 @@
 README.txt
 setup.cfg
 setup.py
+pypowerworld/__init__.py
 pypowerworld/pypowerworld.py
