@@ -11,5 +11,5 @@ setup(
     long_description = open('README.txt',encoding='utf8').read(),
     py_modules = ['pypowerworld'],
     license = 'Creative Commons Attribution-Noncommercial-Share Alike license',
-    install_requires = ['pandas','numpy'],
+    install_requires = ['pandas','numpy','pypiwin32'],
 )

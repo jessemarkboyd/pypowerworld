@@ -10,7 +10,7 @@
 import pandas as pd
 import numpy as np
 import os.path
-import win32com.client
+import win32com
 from win32com.client import VARIANT
 import pythoncom
 
@@ -141,7 +141,7 @@ def get_3PB_fault_current(self, bus_num):
         return output_df
     return None
     
-def create_filter(self, objecttype='BUS', filtername='', filterlogic='AND', filterpre='NO', enabled='YES', condition):
+def create_filter(self, condition, objecttype='BUS', filtername='', filterlogic='AND', filterpre='NO', enabled='YES'):
     # this function creates a filter in PowerWorld. The attempt is to reduce the clunkiness of 
     # creating a filter in the API, which entails creating an aux data file
     auxtext = """
