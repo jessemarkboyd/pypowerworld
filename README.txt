@@ -17,12 +17,12 @@ This requires COM which means it must be run on a Windows OS. It also requires t
 
 ==== INPUT ====
 
-The inputs are labeled identically to the Powerworld Auxiliary File documentation. The inputs can either be method parameters or attributes used to set data or get data from the PowerWorld program. 
+The inputs are labeled similarly to the Powerworld Auxiliary File documentation. The inputs can either be method parameters or attributes used to set data or get data from the PowerWorld program. 
 
 
 ==== OUPUT ====
 
-Data output is sent in data frame format and set to the ‘output’ attribute. This is true only when the get data method is run. For all other operations, this attribute will be set to None. 
+Data output is sent in dataframe format and set to the ‘output’ attribute. This is true only when the get data method is run. For all other operations, this attribute will be set to None. 
 
 
 ==== ERROR HANDLING ====
