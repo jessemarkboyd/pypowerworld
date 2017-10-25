@@ -8,8 +8,8 @@ setup(
     keywords = ['testing', 'logging', 'powerworld', 'powerflow', 'loadflow'],
     version = '0.2.7',
     description = 'Powerworld COM wrapper for Python',
-    long_description = open('README.txt',encoding='utf8').read(),
+    long_description = open('README.txt').read(),
     py_modules = ['pypowerworld'],
     license = 'Creative Commons Attribution-Noncommercial-Share Alike license',
-    install_requires = ['pandas','numpy','pypiwin32','pythoncom'],
+    install_requires = ['pandas','numpy','pypiwin32','pywin32'],
 )
