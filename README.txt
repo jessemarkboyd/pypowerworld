@@ -32,7 +32,7 @@ If an error occurs, the ‘error’ attribute is set to True and the ‘error_me
 
 ==== TYPICAL IMPLEMENTATION ====
 
-	import pypowerworld
+        from pypowerworld import pypowerworld
 
 	case_path = r‘somepath/somecase.pwb’
 	pw = pypowerworld(case_path)
