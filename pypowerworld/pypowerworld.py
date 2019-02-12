@@ -68,13 +68,13 @@ class PyPowerWorld(object):
         return self.error
 
     def opencase(self, pwb_file_path=None):
-        """Ophens case defined by te full file path; if this is undefined, opens by previous file path"""
+        """Opens case defined by the full file path; if this is undefined, opens by previous file path"""
         if pwb_file_path is None and self.pwb_file_path is None:
             pwb_file_path = input('Enter full pwb file path > ')
         if pwb_file_path:
             self.pwb_file_path = os.path.splitext(pwb_file_path)[0] + '.pwb'
         else:
-            self.COMout = self.__pwcom__.OpenCase(self.file_folder + '/' + self.file_name + '.pwb')
+            self.COMout = self.__pwcom__.OpenCase(os.path.normpath(self.pwb_file_path))
             if self.__pwerr__():
                 print('Error opening case:\n\n{}\n\n'.format(self.error_message))
                 print('Please check the file name and path and try again (using the opencase method)\n')
@@ -130,10 +130,10 @@ class PyPowerWorld(object):
         elif self.error_message != '':
             print(self.error_message)
         elif self.COMout is not None:
-            return pd.DataFrame(data = [list(x) for x in self.COMout[1]])
+            return pd.DataFrame(data=[list(x) for x in self.COMout[1]])
         return None
 
-    def calculatetlr(self, flowelement = '', direction = '', transactor = '', setoutofservicebuses = False, filter = 'all'):
+    def calculatetlr(self, flowelement='', direction='', transactor='', setoutofservicebuses=False, filter='all'):
         '''
         Use this action to calculate the TLR values a particular flow element (transmission line or interface). You also
         specify one end of the potential transfer direction. You may optionally specify the linear calculation method. If no
@@ -159,8 +159,9 @@ class PyPowerWorld(object):
                 :return:
         '''
         self.runscriptcommand(
-            script_command = "CalculateTLR({}, {}, {}, {})".format(flowelement, direction, transactor, "AC")
+            script_command="CalculateTLR({}, {}, {}, {})".format(flowelement, direction, transactor, "AC")
         )
+
     def closecase(self):
         """Closes case without saving changes."""
         self.COMout = self.__pwcom__.CloseCase()
@@ -215,7 +216,7 @@ class PyPowerWorld(object):
         elif self.error_message != '':
             print(self.error_message)
         elif self.COMout is not None:
-            df = pd.DataFrame(data = np.array(self.COMout[1][:]).transpose())
+            df = pd.DataFrame(data=np.array(self.COMout[1][:]).transpose())
             df = df.replace('', np.nan, regex=True)
             return df
         return None
@@ -242,7 +243,7 @@ class PyPowerWorld(object):
                     {condition}
                 </SUBDATA>
             }}'''.format(condition=condition, objecttype=objecttype, filtername=filtername, filterlogic=filterlogic,
-                        filterpre=filterpre, enabled=enabled)
+                         filterpre=filterpre, enabled=enabled)
         self.COMout = self.loadauxfiletext(auxtext)
         if self.__pwerr__():
             print('Error creating filter {}:\n\n{}'.format(filtername, self.COMout.error_message))
