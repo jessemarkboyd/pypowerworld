@@ -74,7 +74,7 @@ class PyPowerWorld(object):
         if pwb_file_path:
             self.pwb_file_path = os.path.splitext(pwb_file_path)[0] + '.pwb'
         else:
-            self.COMout = self.__pwcom__.OpenCase(self.file_folder + '/' + self.file_name + '.pwb')
+            self.COMout = self.__pwcom__.OpenCase(os.path.normpath(self.pwb_file_path))
             if self.__pwerr__():
                 print('Error opening case:\n\n{}\n\n'.format(self.error_message))
                 print('Please check the file name and path and try again (using the opencase method)\n')
