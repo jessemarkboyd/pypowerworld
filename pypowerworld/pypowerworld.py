@@ -81,22 +81,30 @@ class PyPowerWorld(object):
                 return False
         return True
 
-    def savecase(self):
+    def savecase(self, filetype = 'PWB'):
         """Saves case with changes to existing file name and path."""
-        self.COMout = self.__pwcom__.SaveCase(self.pwb_file_path, 'PWB', 1)
+        self.COMout = self.__pwcom__.SaveCase(self.pwb_file_path, filetype, 1)
         if self.__pwerr__():
             print('Error saving case:\n\n{}\n\n'.format(self.error_message))
             print('******CASE NOT SAVED!******\n\n')
             return False
         return True
 
-    def savecaseas(self, pwb_file_path=None):
+    def savecaseas(self, pwb_file_path=None, filetype = 'PWB'):
         """If file name and path are specified, saves case as a new file.
         Overwrites any existing file with the same name and path."""
         if pwb_file_path is not None:
-            self.pwb_file_path = os.path.splitext(pwb_file_path)[1] + '.pwb'
-            self.__setfilenames__()
-        return self.savecase()
+            if str(pwb_file_path).endswith('.raw'):
+                if 'PTI' not in filetype:
+                    filetype = 'PTI33'
+                self.pwb_file_path = os.path.normpath(os.path.join(os.path.dirname(pwb_file_path),os.path.basename(pwb_file_path)))
+            else:
+                filetype = 'PWB'
+            return self.savecase(filetype= filetype)
+        else:
+            print('Error saving case:\n\n{}\n\n'.format(pwb_file_path))
+            print('******CASE NOT SAVED!******\n\n')
+            return False
 
     def savecaseasaux(self, file_name=None, FilterName='', ObjectType=None, ToAppend=True, FieldList='all'):
         """If file name and path are specified, saves case as a new aux file.
@@ -202,13 +210,13 @@ class PyPowerWorld(object):
             print('Error retrieving single element parameters:\n\n{}'.format(self.error_message))
         elif self.error_message != '':
             print(self.error_message)
-        elif self.__pwcom__.output is not None:
-            df = pd.DataFrame(np.array(self.__pwcom__.output[1]).transpose(), columns=field_list)
-            df = df.replace('', np.nan, regex=True)
+        elif self.COMout is not None:
+            df = pd.DataFrame(self.COMout[1]).transpose()
+            df.columns = field_list
             return df
         return None
 
-    def getparametersmultipleelement(self, elementtype, fieldlist, filtername=''):
+    def getparametersmultipleelement(self, element_type, field_list, filtername=''):
         fieldarray = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, fieldlist)
         self.COMout = self.__pwcom__.GetParametersMultipleElement(elementtype, fieldarray, filtername)
         if self.__pwerr__():
@@ -217,8 +225,25 @@ class PyPowerWorld(object):
             print(self.error_message)
         elif self.COMout is not None:
             df = pd.DataFrame(data=np.array(self.COMout[1][:]).transpose())
+            df.columns = field_list
             df = df.replace('', np.nan, regex=True)
             return df
+        return None
+
+    def changeparameterssingleelement(self, element_type='BUS', field_list=['BusName', 'BusNum'], value_list=[0, 1]):
+        """Retrieves parameter data according to the fields specified in field_list.
+        value_list consists of identifying parameter values and zeroes and should be
+        the same length as field_list"""
+        assert len(field_list) == len(value_list)
+        field_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
+        value_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, value_list)
+        self.COMout = self.__pwcom__.ChangeParametersSingleElement(element_type, field_array, value_array)
+        if self.__pwerr__():
+            print('Error changing single element parameters:\n\n{}'.format(self.error_message))
+        elif self.error_message != '':
+            print(self.error_message)
+        else:
+            return self.getparameterssingleelement(element_type=element_type,field_list=field_list,value_list=value_list)
         return None
 
     def get3PBfaultcurrent(self, busnum):
@@ -248,7 +273,7 @@ class PyPowerWorld(object):
         if self.__pwerr__():
             print('Error creating filter {}:\n\n{}'.format(filtername, self.COMout.error_message))
             return False
-        return True
+        return filtername
 
     def exit(self):
         """Clean up for the PowerWorld COM object"""
