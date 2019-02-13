@@ -231,9 +231,10 @@ class PyPowerWorld(object):
         return None
 
     def changeparameterssingleelement(self, element_type='BUS', field_list=['BusName', 'BusNum'], value_list=[0, 1]):
-        """Retrieves parameter data according to the fields specified in field_list.
+        """Changes parameter data according to the fields specified in field_list.
         value_list consists of identifying parameter values and zeroes and should be
-        the same length as field_list"""
+        the same length as field_list
+        Refer to the user guide for required key fields for each element type  eg.  ['BusNum', 'ID'] for 'Gen' elements"""
         assert len(field_list) == len(value_list)
         field_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
         value_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, value_list)
