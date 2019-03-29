@@ -6,6 +6,8 @@
 # be changed ad hoc by the opencase method.                         #
 #####################################################################"""
 
+# You will need to replace the original pypowerworld.py that comes with installing the package initally with this file before running calc_gen_shift_factors.
+
 import os
 
 import numpy as np
@@ -211,14 +213,14 @@ class PyPowerWorld(object):
         elif self.error_message != '':
             print(self.error_message)
         elif self.COMout is not None:
-            df = pd.DataFrame(self.COMout[1]).transpose()
+            df = pd.DataFrame(data=np.array(self.COMout[1][:])).transpose()
             df.columns = field_list
             return df
         return None
 
     def getparametersmultipleelement(self, element_type, field_list, filtername=''):
-        fieldarray = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, fieldlist)
-        self.COMout = self.__pwcom__.GetParametersMultipleElement(elementtype, fieldarray, filtername)
+        fieldarray = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
+        self.COMout = self.__pwcom__.GetParametersMultipleElement(element_type, fieldarray, filtername)
         if self.__pwerr__():
             print('Error retrieving single element parameters:\n\n{}\n\n'.format(self.error_message))
         elif self.error_message != '':
