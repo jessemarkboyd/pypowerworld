@@ -18,7 +18,7 @@ URL = 'https://github.com/jessemarkboyd/pypowerworld'
 EMAIL = 'jessemarkboyd@gmail.com'
 AUTHOR = 'Jesse Boyd'
 REQUIRED = [
-    'pandas','numpy','pypiwin32','pywin32'
+    'pandas', 'numpy', 'pypiwin32', 'pywin32'
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -59,6 +59,8 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],

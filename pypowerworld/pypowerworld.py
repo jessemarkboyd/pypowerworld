@@ -14,189 +14,227 @@ from win32com.client import VARIANT
 import pythoncom
 
 
-class PyPowerWorld(object):
-    """Class object designed for easy interface with PowerWorld."""
-    def __init__(self, pwb_file_path=None):
-        try:
-            self.__pwcom__ = win32com.client.Dispatch('pwrworld.SimulatorAuto')
-        except Exception as e:
-            print(str(e))
-            print("Unable to launch SimAuto.",
-                  "Please confirm that your PowerWorld license includes the SimAuto add-on ",
-                  "and that SimAuto has been successfuly installed.")
-        self.pwb_file_path = pwb_file_path
-        self.__setfilenames__()
+class PowerWorld(object):
+
+    # Initilized by a connection to the PowerWorld COM object and a PowerWorld file
+    def __init__(self, fullfile_path=None, originalFilePath=None):
+
+        # Instantize a COM object for the PowerWorld application
+        self.pw_com = win32com.client.Dispatch('pwrworld.SimulatorAuto')
+
+        # Check to make sure file path exists
+        if fullfile_path == None:
+            fullfile_path = input("Please enter full pwb file path and name:")
+
+        # The file name and path attributes are used in the methods
+        self.file_path = os.path.split(fullfile_path)[0]
+        self.file_name = os.path.splitext(os.path.split(fullfile_path)[1])[0]
+        self.original_file_path = originalFilePath
+        self.original_file_name = os.path.splitext(os.path.split(fullfile_path)[1])[0]
+
+        # Create an aux file path in case an aux file is needed later
+        self.auxfile_path = self.file_path + '/' + self.file_name + '.aux'
+
+        # all data returned from PW is contained in the output array
         self.output = ''
+
+        # the error attribute is used to indicate PW error message feedback
         self.error = False
-        self.error_message = ''
-        self.COMout = ''
-        self.opencase()
 
-    def __setfilenames__(self):
-        self.file_folder = os.path.split(self.pwb_file_path)[0]
-        self.file_name = os.path.splitext(os.path.split(self.pwb_file_path)[1])[0]
-        self.aux_file_path = self.file_folder + '/' + self.file_name + '.aux'  # some operations require an aux file
-        self.save_file_path = os.path.splitext(os.path.split(self.pwb_file_path)[1])[0]
+    # Open *.pwb case
+    def open_case(self):
+        # time.sleep(2)
+        temp_status = self.set_output(self.pw_com.OpenCase(self.file_path + '/' + self.file_name + '.pwb'))
+        if not temp_status:
+            print("Error opening case")
+        return temp_status
 
-    def __pwerr__(self):
-        if self.COMout is None:
+    # Open *.pwb case
+    def open_original_case(self):
+        # time.sleep(2)
+        temp_status = self.set_output(self.pw_com.OpenCase(self.original_file_path + '/' + self.file_name + '.pwb'))
+        if not temp_status:
+            print("Error opening case")
+        return temp_status
+
+    # this method should be used to change output, otherwise errors may not be caught
+    def set_output(self, temp_output):
+        if temp_output[0] != '':
+            logging.debug(temp_output)
             self.output = None
-            self.error = False
-            self.error_message = ''
-        elif self.COMout[0] == '':
+            return False
+        elif "No data returned" in temp_output[0]:
             self.output = None
-            self.error = False
-            self.error_message = ''
-        elif 'No data' in self.COMout[0]:
-            self.output = None
-            self.error = False
-            self.error_message = self.COMout[0]
+            return False
         else:
-            self.output = self.COMout[-1]
-            self.error = True
-            self.error_message = self.COMout[0]
-        return self.error            
-    
-    def opencase(self, pwb_file_path=None):
-        """Opens case defined by the full file path; if this is undefined, opens by previous file path"""
-        if pwb_file_path is None and self.pwb_file_path is None:
-            pwb_file_path = input('Enter full pwb file path > ')
-        if pwb_file_path:
-            self.pwb_file_path = os.path.splitext(pwb_file_path)[0] + '.pwb'
-        else:
-            self.COMout = self.__pwcom__.OpenCase(self.file_folder + '/' + self.file_name + '.pwb')
-            if self.__pwerr__():
-                print('Error opening case:\n\n%s\n\n', self.error_message)
-                print('Please check the file name and path and try again (using the opencase method)\n')
-                return False
-        return True
-    
-    def savecase(self):
-        """Saves case with changes to existing file name and path."""
-        self.COMout = self.__pwcom__.SaveCase(self.pwb_file_path, 'PWB', 1)
-        if self.__pwerr__():
-            print('Error saving case:\n\n%s\n\n', self.error_message)
-            print('******CASE NOT SAVED!******\n\n')
-            return False
-        return True
-    
-    def savecaseas(self, pwb_file_path=None):
-        """If file name and path are specified, saves case as a new file.
-        Overwrites any existing file with the same name and path."""
-        if pwb_file_path is not None:
-            self.pwb_file_path = os.path.splitext(pwb_file_path)[1] + '.pwb'
-            self.__setfilenames__()
-        return self.savecase()
-    
-    def savecaseasaux(self, file_name=None, FilterName='', ObjectType=None, ToAppend=True, FieldList='all'):
-        """If file name and path are specified, saves case as a new aux file.
-        Overwrites any existing file with the same name and path."""
-        if file_name is None:
-            file_name = self.file_folder + '/' + self.file_name + '.aux'
-        self.file_folder = os.path.split(file_name)[0]
-        self.save_file_path = os.path.splitext(os.path.split(file_name)[1])[0]
-        self.aux_file_path = self.file_folder + '/' + self.save_file_path + '.aux'
-        self.COMout = self.__pwcom__.WriteAuxFile(self.aux_file_path,FilterName,ObjectType,ToAppend,FieldList)
-        if self.__pwerr__():
-            print('Error saving case:\n\n%s\n\n', self.error_message)
-            print('******CASE NOT SAVED!******\n\n')
-            return False
-        return True
-            
-    def closecase(self):
-        """Closes case without saving changes."""
-        self.COMout = self.__pwcom__.CloseCase()
-        if self.__pwerr__():
-            print('Error closing case:\n\n%s\n\n', self.error_message)
-            return False
-        return True
-    
-    def runscriptcommand(self,script_command):
-        """Input a script command as in an Auxiliary file SCRIPT{} statement or the PowerWorld Script command prompt."""
-        self.COMout = self.__pwcom__.RunScriptCommand(script_command)
-        if self.__pwerr__():
-            print('Error encountered with script:\n\n%s\n\n', self.error_message)
-            print('Script command which was attempted:\n\n%s\n\n', script_command)
-            return False
-        return True
-    
-    def loadauxfiletext(self,auxtext):
-        """Creates and loads an Auxiliary file with the text specified in auxtext parameter."""
-        f = open(self.aux_file_path, 'w')
-        f.writelines(auxtext)
-        f.close()
-        self.COMout = self.__pwcom__.ProcessAuxFile(self.aux_file_path)
-        if self.__pwerr__():
-            print('Error running auxiliary text:\n\n%s\n', self.error_message)
-            return False
-        return True
-    
-    def getparameterssingleelement(self, element_type = 'BUS', field_list = ['BusName', 'BusNum'], value_list = [0, 1]):
-        """Retrieves parameter data according to the fields specified in field_list.
-        value_list consists of identifying parameter values and zeroes and should be
-        the same length as field_list"""
-        assert len(field_list) == len(value_list)
+            self.output = temp_output
+            return True
+
+    # Save *.pwb case with changes
+    def save_case(self):
+        # self.output = self.pw_com.SaveCase(self.file_path + '\\' + self.file_name + '.pwb','PWB', 1)
+        time.sleep(5)
+        return self.set_output(self.pw_com.SaveCase(self.file_path + '\\' + self.file_name + '.pwb', 'PWB', 1))
+
+    # Close PW case, retain the PW interface object
+    def close_case(self):
+        # time.sleep(5)
+        temp_status = self.set_output(self.pw_com.CloseCase())
+        if not temp_status:
+            print("Error closing case")
+        # time.sleep(5)
+        return temp_status
+
+    # The file name is change so that the original is not changed during the analysis
+    def change_file_name(self, new_file_name):
+
+        # Change the filename in the object attributes
+        self.file_name = new_file_name
+
+        # Update the auxiliary file name
+        self.auxfile_path = self.file_path + '/' + self.file_name + '.aux'
+
+        # Save case automatically saves as the filename in object attributes
+        self.save_case()
+
+        # Scripts can be run through the pw_com object. Scripts are essentially PowerWorld methods
+
+    def run_script(self, scriptCommand):
+        # self.output = self.pw_com.RunScriptCommand(scriptCommand)
+        return self.set_output(self.pw_com.RunScriptCommand(scriptCommand))
+
+    # Auxiliary files are used to change data in PowerWorld (sometimes data *must* be changed through aux files)
+    def load_aux(self, auxText):
+
+        # Save a *.aux text file with the auxText as content
+        auxfile_obj = open(self.auxfile_path, 'w')
+        auxfile_obj.writelines(auxText)
+        auxfile_obj.close()
+
+        # Open the aux file in PW to modify the case
+        return self.set_output(self.pw_com.ProcessAuxFile(self.auxfile_path))
+
+    # Get PW data for a single element (e.g. a single bus, branch or zone)
+    def get_parameters_single_element(self, element_type, field_list, valueList):
+
+        # The field array has the names of the key fields and the fields of the requested data
         field_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
-        value_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, value_list) 
-        self.COMout = self.__pwcom__.GetParametersSingleElement(element_type, field_array, value_array)
-        if self.__pwerr__():
-            print('Error retrieving single element parameters:\n\n%s', self.error_message)
-        elif self.error_message != '':
-            print(self.error_message)
-        elif self.__pwcom__.output is not None:
-            df = pd.DataFrame(np.array(self.__pwcom__.output[1]).transpose(),columns=field_list)
-            df = df.replace('',np.nan,regex=True)
-            return df
-        return None
 
-    def getparametersmultipleelement(self, elementtype, fieldlist, filtername = ''):
-        fieldarray = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, fieldlist)
-        self.COMout = self.__pwcom__.GetParametersMultipleElement(elementtype, fieldarray, filtername)
-        if self.__pwerr__():
-            print('Error retrieving single element parameters:\n\n%s\n\n', self.error_message)
-        elif self.error_message != '':
-            print(self.error_message)
-        elif self.__pwcom__.output is not None:
-            df = pd.DataFrame(np.array(self.__pwcom__.output[1]).transpose(), columns=fieldlist)
-            df = df.replace('', np.nan, regex=True)
-            return df
-        return None
+        # The value list contains values in the key fields and zeros for all other fields
+        # The key fields define exactly which element data is requested for
+        # The zero values are place-holders for requested data
+        value_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, valueList)
 
-    def get3PBfaultcurrent(self, busnum):
-        """Calculates the three phase fault; this can be done even with cases which
-        only contain positive sequence impedances"""
-        scriptcmd = f'Fault([BUS {busnum}], 3PB);\n'
-        self.COMout = self.run_script(scriptcmd)
-        if self.__pwerr__():
-            print('Error running 3PB fault:\n\n%s\n\n', self.error_message)
+        # The data on the single element is stored in output[1] (in the same order as the field_array)
+        output = self.pw_com.GetParametersSingleElement(element_type, field_array, value_array)
+
+        return self.set_output(output)
+
+    # Get PW data for multiple elements (e.g. multiple buses, branches or zones)
+    def get_parameters_multiple_element(self, element_type, filter_name, field_list):
+
+        # The field array has the names of the fields of the requested data
+        field_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
+
+        # The data on the single element is stored in output[1]
+        # The element_type is branch or bus or zone, etc.
+        # The filter can be defined as '' if no filter is desired
+        return self.set_output(self.pw_com.GetParametersMultipleElement(element_type, field_array, filter_name))
+
+    # Get multiple elements and return the values as a dictionary object
+    def get_parameters_multiple_element_into_dict(self, element_type, filter_name, field_list, field_key_cols=None,
+                                                  optional_key_function=None):
+
+        # Create a dictionary to hold all the elements returned. This will actually be a dictionary of dictionaries.
+        element_dict = dict()
+
+        # Get the multiple elements into an array
+        # if the data transfer was successful, convert the array into a dictionary
+        if self.get_parameters_multiple_element(element_type, filter_name, field_list):
+
+            # Loop through each element
+            for n in range(0, len(self.output[1][0])):
+
+                # Loop through each column (i.e. attribute) of each element
+                d = dict()
+                for i in range(0, len(self.output[1])):
+                    # each element attribute is defined by the field name in PowerWorld
+                    d[field_list[i]] = self.output[1][i][n]
+
+                    # define a default key for the element dictionary
+                if field_key_cols == None:
+                    key = n
+
+                # if the field_key_cols is defined, the element_dict keys are determined by them
+                # The field_key_cols is an integer or tuple of integers of which element col(s) are used to create the dictionary keys
+                elif type(field_key_cols) is int:
+                    if optional_key_function == None:
+                        value = self.output[1][field_key_cols][n]
+                        if value == '':
+                            continue
+                        else:
+                            key = value
+                    else:
+                        key = optional_key_function(self.output[1][field_key_cols][n])
+                elif type(field_key_cols) is tuple:
+                    key = ''
+                    for x in range(0, len(field_key_cols)):
+                        if x > 0:
+                            key += ' -- '
+                        key += self.output[1][int(field_key_cols[x])][n]
+                else:
+                    key = n
+
+                # Error handle the case of non-unique keys (keys are used as an ID in dictionaries and must be unique)
+                if key in element_dict.keys():
+                    logging.error(
+                        'Attempting to get elements into dict: the key values supplied were not unique to the elements')
+                    logging.error('Duplicate key in elements: %s' % str(key))
+
+                else:
+                    # The element dictionary object has a key as defined above and the element as defined in the d object
+                    element_dict[key] = d
+
+                # Clean up
+                del d
+                d = None
+
+        # Assume any PW error indicates no objects were returned in the requested data
+        else:
+            logging.warning("No elements obtained for dictionary")
+
+        return element_dict
+
+    def get_3PB_fault(self, bus_num):
+
+        # Calculate 3 phase fault at the bus
+        script_cmd = ('Fault([BUS %d], 3PB);\n' % bus_num)
+        self.run_script(script_cmd)
+
+        # Retrieve fault analysis results
+        field_list = ['BusNum', 'FaultCurMag']
+        if self.get_parameters_single_element('BUS', field_list, [bus_num, 0]):
+            return float(self.output[1][1])
+        else:
             return None
-        fieldlist = ['BusNum', 'FaultCurMag']
-        return self.getparameterssingleelement('BUS', fieldlist, [busnum, 0])
-        
-    def createfilter(self, condition, objecttype, filtername, filterlogic='AND', filterpre='NO', enabled='YES'):
-        """Creates a filter in PowerWorld. The attempt is to reduce the clunkiness of
-        # creating a filter in the API, which entails creating an aux data file"""
-        auxtext = '''
-            DATA (FILTER, [ObjectType,FilterName,FilterLogic,FilterPre,Enabled])
-            {
-            "{objecttype}" "{filtername}" "{filterlogic}" "{filterpre}" "{enabled]"
-                <SUBDATA Condition>
-                    {condition}
-                </SUBDATA>
-            }'''.format(condition=condition, objecttype=objecttype, filtername=filtername, filterlogic=filterlogic,
-                        filterpre=filterpre, enabled=enabled)
-        self.COMout = self.__pwcom__.load_aux(auxtext)
-        if self.__pwcom__.error:
-            print('Error creating filter %s:\n\n%s' % (filtername,self.__pwcom__.error_message))
-            return False
-        return True
-    
+
+    # PowerWorld has the ability to send data to excel. This method is currently unused
+    def send_to_excel(self, element_type, filter_name, field_list):
+        field_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
+        return set_output(self.pw_com.SendToExcel(element_type, filter_name, field_array))
+
+    # Reopen the same case to start fresh
+    def reopen_case(self):
+        self.close_case()
+        self.open_case()
+        return
+
+    # The case should be closed upon exit. If not, the PW instance will continue to exist
     def exit(self):
-        """Clean up for the PowerWorld COM object"""
-        self.closecase()
-        del self.__pwcom__
-        self.__pwcom__ = None
-        return None
-    
+        self.close_case()
+        del self.pw_com
+        self.pw_com = None
+
+    # Clean up -- the __del__ functions is automatically entered when the class object is deleted
     def __del__(self):
         self.exit()

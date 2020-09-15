@@ -22,11 +22,16 @@ If an error occurs, the ‘error’ attribute is set to True and the ‘error_me
 
 ==== TYPICAL IMPLEMENTATION ====
 
-from pypowerworld import pypowerworld
+from pypowerworld import PowerWorld
 case_path = r‘somepathsomecase.pwb’
-pw = pypowerworld(case_path)
+pw = PowerWorld(case_path)
 pw.solve()
 if pw.error:
     print(“Error encountered solving power flow: %s” % pw.error_message)
 else:
     print(“The case was solved using the Newton-Raphson method.”)
+script_cmd += 'SolvePowerFlow(RECTNEWT);'
+if pw.run_script(script_cmd):
+    print(“The case was solved using the Newton-Raphson method.”)
+else:
+    print(“Error encountered solving power flow: %s” % pw.error_message)
