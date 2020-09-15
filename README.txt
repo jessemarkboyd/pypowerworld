@@ -21,20 +21,18 @@ Data output is sent in dataframe format and set to the ‘output’ attribute. T
 If an error occurs, the ‘error’ attribute is set to True and the ‘error_message’ attribute is set to an error string value explaining the error. If an error is not encountered, the ‘error’ attribute is set to False and the ‘error_message’ is set to an empty string.
 
 ==== TYPICAL IMPLEMENTATION ====
-.. code-block:: python
-    :linenos:
 
-    from pypowerworld import PowerWorld
-    case_path = r‘somepathsomecase.pwb’
-    pw = PowerWorld(case_path)
-    pw.solve()
-    if pw.error:
-        print(“Error encountered solving power flow: %s” % pw.error_message)
-    else:
-        print(“The case was solved using the Newton-Raphson method.”)
-    script_cmd += 'SolvePowerFlow(RECTNEWT);'
-    if pw.run_script(script_cmd):
-        print(“The case was solved using the Newton-Raphson method.”)
-    else:
-        print(“Error encountered solving power flow: %s” % pw.error_message)
+   from pypowerworld import PowerWorld
+   case_path = r'somepathsomecase.pwb'
+   pw = PowerWorld(case_path)
+   print(pw.solve())
+   if pw.error:
+       print("Error encountered solving power flow: %s" % pw.error_message)
+   else:
+       print("The case was solved using the Newton-Raphson method.")
+   script_cmd = 'SolvePowerFlow(RECTNEWT);'
+   if pw.run_script(script_cmd):
+       print("The case was solved using the Newton-Raphson method.")
+   else:
+       print("Error encountered solving power flow: %s" % pw.error_message)
 
