@@ -40,6 +40,7 @@ class PowerWorld(object):
 
         # the error attribute is used to indicate PW error message feedback
         self.error = False
+        self.error_message = ''
 
     # Open *.pwb case
     def open_case(self):
@@ -60,7 +61,8 @@ class PowerWorld(object):
     # this method should be used to change output, otherwise errors may not be caught
     def set_output(self, temp_output):
         if temp_output[0] != '':
-            logging.debug(temp_output)
+            self.error = True
+            self.error_message = temp_output[0]
             self.output = None
             return False
         elif "No data returned" in temp_output[0]:
@@ -73,7 +75,6 @@ class PowerWorld(object):
     # Save *.pwb case with changes
     def save_case(self):
         # self.output = self.pw_com.SaveCase(self.file_path + '\\' + self.file_name + '.pwb','PWB', 1)
-        time.sleep(5)
         return self.set_output(self.pw_com.SaveCase(self.file_path + '\\' + self.file_name + '.pwb', 'PWB', 1))
 
     # Close PW case, retain the PW interface object
@@ -187,9 +188,10 @@ class PowerWorld(object):
 
                 # Error handle the case of non-unique keys (keys are used as an ID in dictionaries and must be unique)
                 if key in element_dict.keys():
-                    logging.error(
-                        'Attempting to get elements into dict: the key values supplied were not unique to the elements')
-                    logging.error('Duplicate key in elements: %s' % str(key))
+                    self.error_message += 'Attempting to get elements into dict: the key values supplied were not ' \
+                                          'unique to the elements'
+                    self.error_message += 'Duplicate key in elements: %s' % str(key)
+                    self.error = True
 
                 else:
                     # The element dictionary object has a key as defined above and the element as defined in the d object
@@ -201,7 +203,7 @@ class PowerWorld(object):
 
         # Assume any PW error indicates no objects were returned in the requested data
         else:
-            logging.warning("No elements obtained for dictionary")
+            print("No elements obtained for dictionary.")
 
         return element_dict
 
@@ -221,7 +223,7 @@ class PowerWorld(object):
     # PowerWorld has the ability to send data to excel. This method is currently unused
     def send_to_excel(self, element_type, filter_name, field_list):
         field_array = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_ARRAY, field_list)
-        return set_output(self.pw_com.SendToExcel(element_type, filter_name, field_array))
+        return self.set_output(self.pw_com.SendToExcel(element_type, filter_name, field_array))
 
     # Reopen the same case to start fresh
     def reopen_case(self):
